@@ -16,12 +16,6 @@
 #include <iomanip>
 using namespace std;
 
-// ── convenience macro so every abort looks the same ──────────────────────────
-#define ABORT_IF_EMPTY(val) \
-    if ((val).empty()) { cerr << "  Too many invalid attempts. Returning to menu.\n"; waitKey(); return; }
-#define ABORT_IF_NOT_OK(ok) \
-    if (!(ok)) { cerr << "  Too many invalid attempts. Returning to menu.\n"; waitKey(); return; }
-
 // ── Manager menu ──────────────────────────────────────────────────────────────
 
 void WarehouseSystem::showManagerMenu() {
@@ -34,7 +28,7 @@ void WarehouseSystem::showManagerMenu() {
     bool ok;
     int c = readValidatedInt("Choice (1-6): ", "Enter a number between 1 and 6.",
                              [](int v, bool p){ return p && v >= 1 && v <= 6; }, ok);
-    ABORT_IF_NOT_OK(ok);
+    if (!ok) { cerr << "  Too many invalid attempts. Returning to menu.\n"; waitKey(); return; }
     if      (c == 1) productManagement();
     else if (c == 2) employeeManagement();
     else if (c == 3) orderManagement();
@@ -55,7 +49,7 @@ void WarehouseSystem::showEmployeeMenu() {
     bool ok;
     int c = readValidatedInt("Choice (1-5): ", "Enter a number between 1 and 5.",
                              [](int v, bool p){ return p && v >= 1 && v <= 5; }, ok);
-    ABORT_IF_NOT_OK(ok);
+    if (!ok) { cerr << "  Too many invalid attempts. Returning to menu.\n"; waitKey(); return; }
     if      (c == 1) viewAssignedOrders();
     else if (c == 2) completeOrder();
     else if (c == 3) searchProducts();
@@ -74,42 +68,43 @@ void WarehouseSystem::productManagement() {
     bool ok;
     int c = readValidatedInt("Enter choice (1-3): ", "Enter 1, 2, or 3.",
                              [](int v, bool p){ return p && v >= 1 && v <= 3; }, ok);
-    ABORT_IF_NOT_OK(ok);
+    if (!ok) { cerr << "  Too many invalid attempts. Returning to menu.\n"; waitKey(); return; }
 
     if (c == 1) {
         string id = readValidatedLine("Product ID: ",
             "Format: P followed by 3 digits (e.g. P001).",
             [this](const string& v){ return validateId(v, "Product ID"); });
-        ABORT_IF_EMPTY(id);
+        if (id.empty()) { cerr << "  Too many invalid attempts. Returning to menu.\n"; waitKey(); return; }
         if (products_.count(id)) { cerr << "  A product with this ID already exists.\n"; waitKey(); return; }
 
         string name = readValidatedLine("Name: ",
             "1-60 characters, no commas or quotes.",
             [this](const string& v){ return validateName(v, "Product name"); });
-        ABORT_IF_EMPTY(name);
+        if (name.empty()) { cerr << "  Too many invalid attempts. Returning to menu.\n"; waitKey(); return; }
 
         bool qok;
         int qty = readValidatedInt("Quantity: ", "Enter a whole number >= 0.",
                                    [this](int v, bool p){ return validateQuantity(v, p); }, qok);
-        ABORT_IF_NOT_OK(qok);
+        if (!qok) { cerr << "  Too many invalid attempts. Returning to menu.\n"; waitKey(); return; }
 
         string aisle = readValidatedLine("Aisle (e.g. A1): ",
             "Letters and digits only, up to 10 characters.",
             [this](const string& v){ return validateAisle(v); });
-        ABORT_IF_EMPTY(aisle);
+        if (aisle.empty()) { cerr << "  Too many invalid attempts. Returning to menu.\n"; waitKey(); return; }
 
         string shelf = readValidatedLine("Shelf (e.g. S2): ",
             "Letters and digits only, up to 10 characters.",
             [this](const string& v){ return validateShelf(v); });
-        ABORT_IF_EMPTY(shelf);
+        if (shelf.empty()) { cerr << "  Too many invalid attempts. Returning to menu.\n"; waitKey(); return; }
 
         bool pok;
         double price = readValidatedDouble("Price: ", "Enter a number >= 0 (e.g. 9.99).",
                                            [this](double v, bool p){ return validatePrice(v, p); }, pok);
-        ABORT_IF_NOT_OK(pok);
+        if (!pok) { cerr << "  Too many invalid attempts. Returning to menu.\n"; waitKey(); return; }
 
         products_[id] = Product(id, name, qty, aisle, shelf, price);
         cout << "  Product added successfully.\n";
+        saveData();
         waitKey();
 
     } else if (c == 2) {
@@ -129,7 +124,7 @@ void WarehouseSystem::productManagement() {
         string id = readValidatedLine("Product ID to edit: ",
             "Format: P followed by 3 digits (e.g. P001).",
             [this](const string& v){ return validateId(v, "Product ID"); });
-        ABORT_IF_EMPTY(id);
+        if (id.empty()) { cerr << "  Too many invalid attempts. Returning to menu.\n"; waitKey(); return; }
         if (!products_.count(id)) { cerr << "  Product not found.\n"; waitKey(); return; }
         Product& p = products_[id];
 
@@ -141,7 +136,7 @@ void WarehouseSystem::productManagement() {
         bool qok;
         int q = readValidatedInt("Quantity (-1 = keep): ", "Enter a whole number >= 0, or -1 to keep.",
                                  [this](int v, bool p){ return p && (v == -1 || validateQuantity(v, p)); }, qok);
-        ABORT_IF_NOT_OK(qok);
+        if (!qok) { cerr << "  Too many invalid attempts. Returning to menu.\n"; waitKey(); return; }
         if (q != -1) p.setQuantity(q);
 
         string a = readValidatedLine("Aisle (Enter = keep): ",
@@ -157,10 +152,11 @@ void WarehouseSystem::productManagement() {
         bool pok;
         double pr = readValidatedDouble("Price (-1 = keep): ", "Enter a number >= 0, or -1 to keep.",
                                         [this](double v, bool p){ return p && (v == -1.0 || validatePrice(v, p)); }, pok);
-        ABORT_IF_NOT_OK(pok);
+        if (!pok) { cerr << "  Too many invalid attempts. Returning to menu.\n"; waitKey(); return; }
         if (pr != -1.0) p.setPrice(pr);
 
         cout << "  Product updated successfully.\n";
+        saveData();
         waitKey();
     }
 }
@@ -176,38 +172,40 @@ void WarehouseSystem::employeeManagement() {
     bool ok;
     int c = readValidatedInt("Enter choice (1-3): ", "Enter 1, 2, or 3.",
                              [](int v, bool p){ return p && v >= 1 && v <= 3; }, ok);
-    ABORT_IF_NOT_OK(ok);
+    if (!ok) { cerr << "  Too many invalid attempts. Returning to menu.\n"; waitKey(); return; }
 
     if (c == 1) {
         string eid = readValidatedLine("Employee ID: ",
             "Format: E followed by 3 digits (e.g. E001).",
             [this](const string& v){ return validateId(v, "Employee ID"); });
-        ABORT_IF_EMPTY(eid);
+        if (eid.empty()) { cerr << "  Too many invalid attempts. Returning to menu.\n"; waitKey(); return; }
         if (employees_.count(eid)) { cerr << "  An employee with this ID already exists.\n"; waitKey(); return; }
 
         string fullName = readValidatedLine("Full name: ",
             "1-60 characters, no commas or quotes.",
             [this](const string& v){ return validateName(v, "Full name"); });
-        ABORT_IF_EMPTY(fullName);
+        if (fullName.empty()) { cerr << "  Too many invalid attempts. Returning to menu.\n"; waitKey(); return; }
 
         employees_[eid] = EmployeeRecord(eid, fullName);
         cout << "  Employee added.\n";
+        saveData();  // Save employee record immediately
 
         string create = readLine("Create login? (y/n): ");
         if (create == "y" || create == "Y") {
             string uname = readValidatedLine("Username: ",
                 "3-30 characters, letters/digits/underscores only.",
                 [this](const string& v){ return validateUsername(v); });
-            ABORT_IF_EMPTY(uname);
+            if (uname.empty()) { cerr << "  Too many invalid attempts. Returning to menu.\n"; waitKey(); return; }
             if (users_.count(uname)) { cerr << "  Username already in use.\n"; waitKey(); return; }
 
             string pwd = readValidatedLine("Password: ",
                 "4-50 characters, no commas or quotes.",
                 [this](const string& v){ return validatePassword(v); });
-            ABORT_IF_EMPTY(pwd);
+            if (pwd.empty()) { cerr << "  Too many invalid attempts. Returning to menu.\n"; waitKey(); return; }
 
             authManager_->registerUser(new Employee(uname, authManager_->hashPassword(pwd), eid));
             cout << "  Login account created.\n";
+            saveData();  // Save immediately so new user is persisted
         }
         waitKey();
 
@@ -229,7 +227,7 @@ void WarehouseSystem::employeeManagement() {
         string eid = readValidatedLine("Employee ID to edit: ",
             "Format: E followed by 3 digits (e.g. E001).",
             [this](const string& v){ return validateId(v, "Employee ID"); });
-        ABORT_IF_EMPTY(eid);
+        if (eid.empty()) { cerr << "  Too many invalid attempts. Returning to menu.\n"; waitKey(); return; }
         if (!employees_.count(eid)) { cerr << "  Employee not found.\n"; waitKey(); return; }
 
         string n = readValidatedLine("New name (Enter = keep): ",
@@ -237,6 +235,7 @@ void WarehouseSystem::employeeManagement() {
             [this](const string& v){ return v.empty() || validateName(v, "Name"); });
         if (!n.empty()) employees_[eid].setName(n);
         cout << "  Employee updated successfully.\n";
+        saveData();
         waitKey();
     }
 }
@@ -252,7 +251,7 @@ void WarehouseSystem::orderManagement() {
     bool ok;
     int c = readValidatedInt("Enter choice (1-3): ", "Enter 1, 2, or 3.",
                              [](int v, bool p){ return p && v >= 1 && v <= 3; }, ok);
-    ABORT_IF_NOT_OK(ok);
+    if (!ok) { cerr << "  Too many invalid attempts. Returning to menu.\n"; waitKey(); return; }
 
     if      (c == 1) orderCreate();
     else if (c == 2) {
@@ -270,7 +269,7 @@ void WarehouseSystem::orderManagement() {
         string oid = readValidatedLine("Order ID to edit: ",
             "Format: ORD followed by 3 digits (e.g. ORD001).",
             [this](const string& v){ return validateId(v, "Order ID"); });
-        ABORT_IF_EMPTY(oid);
+        if (oid.empty()) { cerr << "  Too many invalid attempts. Returning to menu.\n"; waitKey(); return; }
         orderEdit(oid);
     }
 }
@@ -280,7 +279,7 @@ void WarehouseSystem::orderCreate() {
     string oid = readValidatedLine("Order ID: ",
         "Format: ORD followed by 3 digits (e.g. ORD001).",
         [this](const string& v){ return validateId(v, "Order ID"); });
-    ABORT_IF_EMPTY(oid);
+    if (oid.empty()) { cerr << "  Too many invalid attempts. Returning to menu.\n"; waitKey(); return; }
     if (orders_.count(oid)) { cerr << "  An order with this ID already exists.\n"; waitKey(); return; }
 
     Order ord(oid, "Pending", "");
@@ -301,6 +300,7 @@ void WarehouseSystem::orderCreate() {
 
     orders_[oid] = ord;
     cout << "  Order created successfully.\n";
+    saveData();
     waitKey();
 }
 
@@ -332,6 +332,7 @@ void WarehouseSystem::orderEdit(const string& oid) {
         return;
     }
     cout << "  Order updated successfully.\n";
+    saveData();
     waitKey();
 }
 
@@ -340,19 +341,20 @@ void WarehouseSystem::assignOrder() {
     string oid = readValidatedLine("Order ID: ",
         "Format: ORD followed by 3 digits (e.g. ORD001).",
         [this](const string& v){ return validateId(v, "Order ID"); });
-    ABORT_IF_EMPTY(oid);
+    if (oid.empty()) { cerr << "  Too many invalid attempts. Returning to menu.\n"; waitKey(); return; }
     if (!orders_.count(oid)) { cerr << "  Order not found.\n"; waitKey(); return; }
     if (orders_[oid].getStatus() == "Completed") { cerr << "  Cannot reassign a completed order.\n"; waitKey(); return; }
 
     string eid = readValidatedLine("Employee ID: ",
         "Format: E followed by 3 digits (e.g. E001).",
         [this](const string& v){ return validateId(v, "Employee ID"); });
-    ABORT_IF_EMPTY(eid);
+    if (eid.empty()) { cerr << "  Too many invalid attempts. Returning to menu.\n"; waitKey(); return; }
     if (!employees_.count(eid)) { cerr << "  Employee not found.\n"; waitKey(); return; }
 
     orders_[oid].setAssignedEmployeeId(eid);
     orders_[oid].setStatus("InProgress");
     cout << "  Order " << oid << " assigned to " << eid << ".\n";
+    saveData();
     waitKey();
 }
 
@@ -377,7 +379,7 @@ void WarehouseSystem::completeOrder() {
     string oid = readValidatedLine("Order ID to complete: ",
         "Format: ORD followed by 3 digits (e.g. ORD001).",
         [this](const string& v){ return validateId(v, "Order ID"); });
-    ABORT_IF_EMPTY(oid);
+    if (oid.empty()) { cerr << "  Too many invalid attempts. Returning to menu.\n"; waitKey(); return; }
     if (!orders_.count(oid)) { cerr << "  Order not found.\n"; waitKey(); return; }
     Order& ord = orders_[oid];
     if (ord.getAssignedEmployeeId() != currentUser_->getEmployeeId()) {
@@ -388,6 +390,7 @@ void WarehouseSystem::completeOrder() {
     deductStock(ord);
     ord.setStatus("Completed");
     cout << "  Order completed successfully.\n";
+    saveData();
     waitKey();
 }
 
@@ -396,7 +399,7 @@ void WarehouseSystem::searchProducts() {
     string query = readValidatedLine("Search by name or ID: ",
         "Enter at least 1 character.",
         [](const string& v){ return !v.empty() && v.size() <= 60; });
-    ABORT_IF_EMPTY(query);
+    if (query.empty()) { cerr << "  Too many invalid attempts. Returning to menu.\n"; waitKey(); return; }
 
     list<Product> results = findProductsByNameOrId(query);
     if (results.empty()) { cout << "  No products match your search.\n"; waitKey(); return; }
@@ -424,13 +427,13 @@ void WarehouseSystem::reportMenu() {
     bool ok;
     int c = readValidatedInt("Choice (1-4): ", "Enter a number between 1 and 4.",
                              [](int v, bool p){ return p && v >= 1 && v <= 4; }, ok);
-    ABORT_IF_NOT_OK(ok);
+    if (!ok) { cerr << "  Too many invalid attempts. Returning to menu.\n"; waitKey(); return; }
     if (c == 4) return;
 
     string path = readValidatedLine("Save to file (e.g. reports/inventory.csv): ",
         "Enter a valid file path, no quotes or newlines.",
         [this](const string& v){ return validateFilePath(v); });
-    ABORT_IF_EMPTY(path);
+    if (path.empty()) { cerr << "  Too many invalid attempts. Returning to menu.\n"; waitKey(); return; }
 
     if (!reportGenerator_) { cerr << "  Report generator not available.\n"; waitKey(); return; }
     bool done = false;

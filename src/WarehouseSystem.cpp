@@ -55,6 +55,15 @@ WarehouseSystem::~WarehouseSystem() {
 void WarehouseSystem::loadData() {
     FileHandler fh(DATA_DIR);
     if (fh.loadUsers(users_) && !users_.empty()) {
+        // Ensure admin exists and admin/admin always works
+        auto it = users_.find("admin");
+        if (it == users_.end()) {
+            users_["admin"] = new Manager("admin", authManager_->hashPassword("admin"));
+            fh.saveUsers(users_);
+        } else if (it->second) {
+            it->second->setPasswordHash(authManager_->hashPassword("admin"));
+            fh.saveUsers(users_);
+        }
         fh.loadProducts(products_);
         fh.loadEmployees(employees_);
         fh.loadOrders(orders_);
@@ -135,7 +144,6 @@ void WarehouseSystem::saveData() {
     fh.saveOrders(orders_);
 }
 
-// ── raw input ─────────────────────────────────────────────────────────────────
 
 string WarehouseSystem::readLine(const string& prompt) {
     cout << "  " << prompt << "> ";
@@ -260,19 +268,15 @@ void WarehouseSystem::printMenu(const string& title, const string items[], int n
 }
 
 void WarehouseSystem::run() {
-    cout << "\n  ----------------------------------------\n";
-    cout << "    Warehouse Inventory System\n";
-    cout << "  ----------------------------------------\n\n";
-    cout << "  Sign in to continue.\n\n";
     while (true) {
         try {
             runLoginAndMenuLoop();
         } catch (const runtime_error& e) {
-            cerr << "  " << e.what() << "\n";
+            cerr << "\n  [!] " << e.what() << "\n";
             waitKey();
             currentUser_ = nullptr;
         } catch (const exception& e) {
-            cerr << "  Error: " << e.what() << "\n";
+            cerr << "\n  [!] Error: " << e.what() << "\n";
             waitKey();
             currentUser_ = nullptr;
         }
@@ -280,19 +284,38 @@ void WarehouseSystem::run() {
 }
 
 void WarehouseSystem::runLoginAndMenuLoop() {
-    string user = readLine("Username: ");
-    string pass = readLine("Password: ");
+    // Login screen
+    cout << "\n";
+    cout << "  +" << string(46, '=') << "+\n";
+    cout << "  |" << string(46, ' ') << "|\n";
+    cout << "  |" << "     WAREHOUSE INVENTORY SYSTEM" << string(14, ' ') << "|\n";
+    cout << "  |" << string(46, ' ') << "|\n";
+    cout << "  |" << "     Sign in to continue" << string(21, ' ') << "|\n";
+    cout << "  |" << string(46, ' ') << "|\n";
+    cout << "  +" << string(46, '=') << "+\n\n";
+
+    string user = readLine("Username");
+    string pass = readLine("Password");
+    cout << "\n";
+
     if (user.empty() || pass.empty()) {
-        cerr << "  Username and password cannot be empty.\n";
+        cerr << "  [!] Username and password cannot be empty.\n";
+        waitKey();
         return;
     }
     currentUser_ = authManager_->login(user, pass);
     if (!currentUser_) {
-        cerr << "  Invalid username or password.\n";
+        cerr << "   Invalid username or password. Please try again.\n";
+        waitKey();
         return;
     }
-    cout << "  Welcome, " << currentUser_->getUsername()
-         << " (" << currentUser_->getRole() << ").\n\n";
+
+    // Welcome message
+    string welcomeText = currentUser_->getUsername() + " (" + currentUser_->getRole() + ")";
+    if (welcomeText.size() > 33) welcomeText = welcomeText.substr(0, 30) + "...";
+    cout << "  +" << string(46, '-') << "+\n";
+    cout << "  |  Welcome, " << left << setw(33) << welcomeText << "|\n";
+    cout << "  +" << string(46, '-') << "+\n\n";
 
     if (currentUser_->getRole() == "Manager")
         while (currentUser_) showManagerMenu();
@@ -301,7 +324,9 @@ void WarehouseSystem::runLoginAndMenuLoop() {
 
     saveData();
     currentUser_ = nullptr;
-    cout << "\n  You have been logged out.\n\n";
+    cout << "\n  +" << string(46, '-') << "+\n";
+    cout << "  |  You have been logged out. Goodbye!" << string(12, ' ') << "|\n";
+    cout << "  +" << string(46, '-') << "+\n\n";
 }
 
 list<Product> WarehouseSystem::findProductsByNameOrId(const string& query) {

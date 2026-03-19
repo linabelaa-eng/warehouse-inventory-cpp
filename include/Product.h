@@ -14,7 +14,7 @@ private:
     double price_;
     public:
     Product();
-    Product(const std::string& id, const std::string& name, int quantity,const std::string& aisle, const std::string& shelf, double price);
+    Product(const string& id, const string& name, int quantity,const string& aisle, const string& shelf, double price);
     string getId() const;
     string getName() const;
     int getQuantity() const;

@@ -28,12 +28,20 @@ void FileHandler::ensureFileExists(const string& filename, const string& header)
     }
 }
 
+static string trimField(string s) {
+    const string w = " \t\r\n";
+    auto start = s.find_first_not_of(w);
+    if (start == string::npos) return "";
+    auto end = s.find_last_not_of(w);
+    return s.substr(start, end - start + 1);
+}
+
 void FileHandler::parseLine(const string& line, vector<string>& fields) {
     fields.clear();
     istringstream iss(line);
     string field;
     while (getline(iss, field, ','))
-        fields.push_back(move(field));
+        fields.push_back(trimField(move(field)));
 }
 
 bool FileHandler::loadUsers(map<string, User*>& out) {
