@@ -110,6 +110,7 @@ static void testAuth() {
 
 static void testProductAndOrder() {
     Product p("P001", "Widget", 11, "A1", "S1", 9.99);
+
     CHECK(p.getStockStatus() == "InStock");
     p.setQuantity(0);
     CHECK(p.getStockStatus() == "OutOfStock");
