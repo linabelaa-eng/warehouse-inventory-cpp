@@ -22,10 +22,10 @@
 Product is added and confirmation message is displayed.
 
 ## Actual Result
-<!-- Fill in when tested -->
+Product is created successfully and appears in the product list.
 
 ## Status
-<!-- PASS or FAIL -->
+PASS
 
 ## Evidence
 See /evidence/TC03_pass.png

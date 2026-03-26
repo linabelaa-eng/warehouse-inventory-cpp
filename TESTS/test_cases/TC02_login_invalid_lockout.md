@@ -19,10 +19,10 @@ System displays an error after each attempt and terminates
 the session after the third failure.
 
 ## Actual Result
-<!-- Fill in when tested -->
+Invalid credentials are rejected, and after the third failed attempt the program terminates.
 
 ## Status
-<!-- PASS or FAIL -->
+PASS
 
 ## Evidence
 See /evidence/TC02_pass.png

@@ -20,10 +20,10 @@
 Order is rejected with an insufficient stock error message.
 
 ## Actual Result
-<!-- Fill in when tested -->
+Order creation is rejected with an insufficient stock message.
 
 ## Status
-<!-- PASS or FAIL -->
+PASS
 
 ## Evidence
 See /evidence/TC07_pass.png

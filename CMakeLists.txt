@@ -30,6 +30,7 @@ add_executable(Warehouse
     src/FileHandler.cpp
     src/ReportGenerator.cpp
     src/InputValidator.cpp
+        TESTS/TestInputValidator.h
 )
 
 option(BUILD_TESTS "Build simple unit test runner" ON)
@@ -60,5 +61,6 @@ if(BUILD_TESTS)
         src/WarehouseSystem.cpp
         src/WarehouseSystemMenus.cpp
         src/InputValidator.cpp
+            TESTS/TestInputValidator.h
     )
 endif()

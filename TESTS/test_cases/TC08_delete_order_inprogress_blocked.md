@@ -17,10 +17,10 @@ Order ORD001 exists and has status InProgress.
 System displays: Cannot delete an order that is in progress.
 
 ## Actual Result
-<!-- Fill in when tested -->
+System rejects deletion and prints: Cannot delete an order that is in progress.
 
 ## Status
-<!-- PASS or FAIL -->
+PASS
 
 ## Evidence
 See /evidence/TC08_pass.png

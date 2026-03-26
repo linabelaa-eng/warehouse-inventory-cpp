@@ -17,10 +17,10 @@ Order ORD002 exists and has status Completed.
 System displays: Cannot delete a completed order - history must be preserved.
 
 ## Actual Result
-<!-- Fill in when tested -->
+System rejects deletion and prints: Cannot delete a completed order - history must be preserved.
 
 ## Status
-<!-- PASS or FAIL -->
+PASS
 
 ## Evidence
 See /evidence/TC09_pass.png

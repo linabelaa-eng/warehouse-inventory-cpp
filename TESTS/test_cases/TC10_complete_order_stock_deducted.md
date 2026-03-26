@@ -20,10 +20,10 @@ Order is marked Completed. Product P001 stock is reduced
 by the correct quantity.
 
 ## Actual Result
-<!-- Fill in when tested -->
+Assigned employee completes the order successfully, and product quantity is reduced accordingly.
 
 ## Status
-<!-- PASS or FAIL -->
+PASS
 
 ## Evidence
 See /evidence/TC10_pass.png

@@ -8,6 +8,7 @@ class EmployeeRecord
 private:
     string employeeId_;
     string name_;
+    bool isDeleted_;
     public:
     EmployeeRecord();
     EmployeeRecord(const std::string& employeeId, const std::string& name);
@@ -15,5 +16,7 @@ private:
     string getName() const;
     void setEmployeeId(const string& employeeId);
     void setName(const string& name);
+    bool isDeleted() const;
+    void setDeleted(bool deleted);
 };
 #endif

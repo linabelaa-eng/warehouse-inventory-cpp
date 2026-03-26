@@ -15,10 +15,10 @@ System displays an error message and prompts for re-entry
 without crashing.
 
 ## Actual Result
-<!-- Fill in when tested -->
+Invalid text input is rejected with an error message and the program remains stable.
 
 ## Status
-<!-- PASS or FAIL -->
+PASS
 
 ## Evidence
 See /evidence/TC12_pass.png

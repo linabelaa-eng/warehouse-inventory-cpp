@@ -19,10 +19,10 @@ Deletion is blocked and the relevant order ID is displayed
 in an error message.
 
 ## Actual Result
-<!-- Fill in when tested -->
+Deletion is blocked when the product is referenced by an active order, and the blocking order ID is shown.
 
 ## Status
-<!-- PASS or FAIL -->
+PASS
 
 ## Evidence
 See /evidence/TC05_pass.png

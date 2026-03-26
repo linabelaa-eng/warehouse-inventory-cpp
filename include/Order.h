@@ -11,6 +11,7 @@ private:
     string status_;
     string assignedEmployeeId_;
     list<OrderItem> items_;
+    bool isDeleted_;
     public:
     Order();
     Order(const string& orderId, const string& status, const string& assignedEmployeeId= "");
@@ -23,6 +24,8 @@ private:
     void setAssignedEmployeeId(const string& assignedEmployeeId);
     void addItem(const OrderItem& orderItem);
     void clearItems();
+    bool isDeleted() const;
+    void setDeleted(bool deleted);
 
 
 };

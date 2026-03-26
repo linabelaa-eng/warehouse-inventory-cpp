@@ -44,8 +44,11 @@ private:
     void showManagerMenu();
     void showEmployeeMenu();
     void productManagement();
+    void deleteProduct();
     void employeeManagement();
+    void deleteEmployee();
     void orderManagement();
+    void deleteOrder();
     void orderCreate();
     void orderEdit(const string& oid);
     void assignOrder();

@@ -17,10 +17,10 @@
 System rejects the entry and displays a duplicate ID error message.
 
 ## Actual Result
-<!-- Fill in when tested -->
+System blocks the duplicate Product ID and shows an error message.
 
 ## Status
-<!-- PASS or FAIL -->
+PASS
 
 ## Evidence
 See /evidence/TC04_pass.png

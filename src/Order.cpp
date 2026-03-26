@@ -1,8 +1,13 @@
 #include "../include/Order.h"
+
 using namespace std;
 
-Order::Order() {}
-Order::Order(const string& orderId, const string& status,const string& assignedEmployeeId): orderId_(orderId), status_(status), assignedEmployeeId_(assignedEmployeeId) {}
+Order::Order() : isDeleted_(false) {}
+
+Order::Order(const string& orderId, const string& status,
+             const string& assignedEmployeeId)
+    : orderId_(orderId), status_(status),
+      assignedEmployeeId_(assignedEmployeeId), isDeleted_(false) {}
 string Order::getOrderId() const { return orderId_; }
 string Order::getStatus() const { return status_; }
 string Order::getAssignedEmployeeId() const { return assignedEmployeeId_; }
@@ -16,3 +21,5 @@ void Order::addItem(const OrderItem& orderItem)
     items_.push_back(orderItem);
 }
 void Order::clearItems(){items_.clear();}
+bool Order::isDeleted() const { return isDeleted_; }
+void Order::setDeleted(bool deleted) { isDeleted_ = deleted; }

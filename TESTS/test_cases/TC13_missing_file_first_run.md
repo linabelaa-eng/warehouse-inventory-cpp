@@ -17,10 +17,10 @@ System starts without crashing and creates the missing
 CSV files automatically.
 
 ## Actual Result
-<!-- Fill in when tested -->
+Application starts and initialises required data files when they are missing.
 
 ## Status
-<!-- PASS or FAIL -->
+PASS
 
 ## Evidence
 See /evidence/TC13_pass.png

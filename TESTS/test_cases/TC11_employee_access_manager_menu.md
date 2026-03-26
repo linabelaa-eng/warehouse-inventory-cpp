@@ -14,10 +14,10 @@ Only the Employee Menu is shown (options 1-5).
 No manager options are accessible.
 
 ## Actual Result
-<!-- Fill in when tested -->
+Employee account is shown only Employee Menu options and cannot access manager-only functions.
 
 ## Status
-<!-- PASS or FAIL -->
+PASS
 
 ## Evidence
 See /evidence/TC11_pass.png

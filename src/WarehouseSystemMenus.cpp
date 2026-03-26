@@ -62,12 +62,13 @@ void WarehouseSystem::showEmployeeMenu() {
 void WarehouseSystem::productManagement() {
     sectionTitle("Product Management");
     static const string opts[] = {
-        "  1. Add product", "  2. View all products", "  3. Edit product"
+        "  1. Add product", "  2. View all products",
+        "  3. Edit product", "  4. Delete product"
     };
-    printMenu("Product Management", opts, 3);
+    printMenu("Product Management", opts, 4);
     bool ok;
-    int c = readValidatedInt("Enter choice (1-3): ", "Enter 1, 2, or 3.",
-                             [](int v, bool p){ return p && v >= 1 && v <= 3; }, ok);
+    int c = readValidatedInt("Enter choice (1-4): ", "Enter 1, 2, 3, or 4.",
+                             [](int v, bool p){ return p && v >= 1 && v <= 4; }, ok);
     if (!ok) { cerr << "  Too many invalid attempts. Returning to menu.\n"; waitKey(); return; }
 
     if (c == 1) {
@@ -75,7 +76,9 @@ void WarehouseSystem::productManagement() {
             "Format: P followed by 3 digits (e.g. P001).",
             [this](const string& v){ return validateId(v, "Product ID"); });
         if (id.empty()) { cerr << "  Too many invalid attempts. Returning to menu.\n"; waitKey(); return; }
-        if (products_.count(id)) { cerr << "  A product with this ID already exists.\n"; waitKey(); return; }
+        if (products_.count(id) && !products_[id].isDeleted()) {
+            cerr << "  A product with this ID already exists.\n"; waitKey(); return;
+        }
 
         string name = readValidatedLine("Name: ",
             "1-60 characters, no commas or quotes.",
@@ -108,16 +111,20 @@ void WarehouseSystem::productManagement() {
         waitKey();
 
     } else if (c == 2) {
-        if (products_.empty()) { cout << "  No products in inventory.\n"; waitKey(); return; }
+        bool any = false;
         cout << "\n  " << left << setw(12) << "ID" << setw(20) << "Name"
              << setw(8) << "Qty" << setw(10) << "Location" << "Price\n  "
              << string(56, '-') << "\n";
-        for (const auto& p : products_)
+        for (const auto& p : products_) {
+            if (p.second.isDeleted()) continue;
+            any = true;
             cout << "  " << left << setw(12) << p.second.getId()
                  << setw(20) << p.second.getName()
                  << setw(8)  << p.second.getQuantity()
                  << setw(10) << (p.second.getAisle() + "/" + p.second.getShelf())
                  << fixed << setprecision(2) << p.second.getPrice() << "\n";
+        }
+        if (!any) cout << "  No products in inventory.\n";
         waitKey();
 
     } else if (c == 3) {
@@ -125,7 +132,9 @@ void WarehouseSystem::productManagement() {
             "Format: P followed by 3 digits (e.g. P001).",
             [this](const string& v){ return validateId(v, "Product ID"); });
         if (id.empty()) { cerr << "  Too many invalid attempts. Returning to menu.\n"; waitKey(); return; }
-        if (!products_.count(id)) { cerr << "  Product not found.\n"; waitKey(); return; }
+        if (!products_.count(id) || products_[id].isDeleted()) {
+            cerr << "  Product not found.\n"; waitKey(); return;
+        }
         Product& p = products_[id];
 
         string n = readValidatedLine("Name (Enter = keep): ",
@@ -158,7 +167,46 @@ void WarehouseSystem::productManagement() {
         cout << "  Product updated successfully.\n";
         saveData();
         waitKey();
+
+    } else if (c == 4) {
+        deleteProduct();
     }
+}
+
+// ── Delete product ────────────────────────────────────────────────────────────
+
+void WarehouseSystem::deleteProduct() {
+    sectionTitle("Delete Product");
+    string id = readValidatedLine("Product ID to delete: ",
+        "Format: P followed by 3 digits (e.g. P001).",
+        [this](const string& v){ return validateId(v, "Product ID"); });
+    if (id.empty()) { cerr << "  Too many invalid attempts. Returning to menu.\n"; waitKey(); return; }
+    if (!products_.count(id) || products_[id].isDeleted()) {
+        cerr << "  Product not found.\n"; waitKey(); return;
+    }
+
+    // Block deletion if product is referenced in any active order
+    for (const auto& o : orders_) {
+        if (o.second.isDeleted() || o.second.getStatus() == "Completed") continue;
+        for (const auto& item : o.second.getItems()) {
+            if (item.getProductId() == id) {
+                cerr << "  Cannot delete: product is part of active order "
+                     << o.second.getOrderId() << ".\n";
+                waitKey();
+                return;
+            }
+        }
+    }
+
+    string confirm = readLine("Are you sure you want to delete " + id + "? (y/n): ");
+    if (confirm != "y" && confirm != "Y") {
+        cout << "  Deletion cancelled.\n"; waitKey(); return;
+    }
+
+    products_[id].setDeleted(true);
+    cout << "  Product " << id << " deleted successfully.\n";
+    saveData();
+    waitKey();
 }
 
 // ── Employee management ───────────────────────────────────────────────────────
@@ -166,12 +214,13 @@ void WarehouseSystem::productManagement() {
 void WarehouseSystem::employeeManagement() {
     sectionTitle("Employee Management");
     static const string opts[] = {
-        "  1. Add employee", "  2. View all employees", "  3. Edit employee"
+        "  1. Add employee", "  2. View all employees",
+        "  3. Edit employee", "  4. Delete employee"
     };
-    printMenu("Employee Management", opts, 3);
+    printMenu("Employee Management", opts, 4);
     bool ok;
-    int c = readValidatedInt("Enter choice (1-3): ", "Enter 1, 2, or 3.",
-                             [](int v, bool p){ return p && v >= 1 && v <= 3; }, ok);
+    int c = readValidatedInt("Enter choice (1-4): ", "Enter 1, 2, 3, or 4.",
+                             [](int v, bool p){ return p && v >= 1 && v <= 4; }, ok);
     if (!ok) { cerr << "  Too many invalid attempts. Returning to menu.\n"; waitKey(); return; }
 
     if (c == 1) {
@@ -179,7 +228,9 @@ void WarehouseSystem::employeeManagement() {
             "Format: E followed by 3 digits (e.g. E001).",
             [this](const string& v){ return validateId(v, "Employee ID"); });
         if (eid.empty()) { cerr << "  Too many invalid attempts. Returning to menu.\n"; waitKey(); return; }
-        if (employees_.count(eid)) { cerr << "  An employee with this ID already exists.\n"; waitKey(); return; }
+        if (employees_.count(eid) && !employees_[eid].isDeleted()) {
+            cerr << "  An employee with this ID already exists.\n"; waitKey(); return;
+        }
 
         string fullName = readValidatedLine("Full name: ",
             "1-60 characters, no commas or quotes.",
@@ -188,7 +239,7 @@ void WarehouseSystem::employeeManagement() {
 
         employees_[eid] = EmployeeRecord(eid, fullName);
         cout << "  Employee added.\n";
-        saveData();  // Save employee record immediately
+        saveData();
 
         string create = readLine("Create login? (y/n): ");
         if (create == "y" || create == "Y") {
@@ -205,15 +256,17 @@ void WarehouseSystem::employeeManagement() {
 
             authManager_->registerUser(new Employee(uname, authManager_->hashPassword(pwd), eid));
             cout << "  Login account created.\n";
-            saveData();  // Save immediately so new user is persisted
+            saveData();
         }
         waitKey();
 
     } else if (c == 2) {
-        if (employees_.empty()) { cout << "  No employees registered.\n"; waitKey(); return; }
+        bool any = false;
         cout << "\n  " << left << setw(16) << "Employee ID" << setw(24) << "Name"
              << "Role\n  " << string(52, '-') << "\n";
         for (const auto& e : employees_) {
+            if (e.second.isDeleted()) continue;
+            any = true;
             string role = "-";
             for (const auto& u : users_)
                 if (u.second && u.second->getEmployeeId() == e.second.getEmployeeId())
@@ -221,6 +274,7 @@ void WarehouseSystem::employeeManagement() {
             cout << "  " << left << setw(16) << e.second.getEmployeeId()
                  << setw(24) << e.second.getName() << role << "\n";
         }
+        if (!any) cout << "  No employees registered.\n";
         waitKey();
 
     } else if (c == 3) {
@@ -228,7 +282,9 @@ void WarehouseSystem::employeeManagement() {
             "Format: E followed by 3 digits (e.g. E001).",
             [this](const string& v){ return validateId(v, "Employee ID"); });
         if (eid.empty()) { cerr << "  Too many invalid attempts. Returning to menu.\n"; waitKey(); return; }
-        if (!employees_.count(eid)) { cerr << "  Employee not found.\n"; waitKey(); return; }
+        if (!employees_.count(eid) || employees_[eid].isDeleted()) {
+            cerr << "  Employee not found.\n"; waitKey(); return;
+        }
 
         string n = readValidatedLine("New name (Enter = keep): ",
             "1-60 characters, no commas or quotes.",
@@ -237,7 +293,45 @@ void WarehouseSystem::employeeManagement() {
         cout << "  Employee updated successfully.\n";
         saveData();
         waitKey();
+
+    } else if (c == 4) {
+        deleteEmployee();
     }
+}
+
+// ── Delete employee ───────────────────────────────────────────────────────────
+
+void WarehouseSystem::deleteEmployee() {
+    sectionTitle("Delete Employee");
+    string eid = readValidatedLine("Employee ID to delete: ",
+        "Format: E followed by 3 digits (e.g. E001).",
+        [this](const string& v){ return validateId(v, "Employee ID"); });
+    if (eid.empty()) { cerr << "  Too many invalid attempts. Returning to menu.\n"; waitKey(); return; }
+    if (!employees_.count(eid) || employees_[eid].isDeleted()) {
+        cerr << "  Employee not found.\n"; waitKey(); return;
+    }
+
+    // Block deletion if employee has any active InProgress orders
+    for (const auto& o : orders_) {
+        if (o.second.isDeleted()) continue;
+        if (o.second.getAssignedEmployeeId() == eid &&
+            o.second.getStatus() == "InProgress") {
+            cerr << "  Cannot delete: employee has active order "
+                 << o.second.getOrderId() << " in progress.\n";
+            waitKey();
+            return;
+        }
+    }
+
+    string confirm = readLine("Are you sure you want to delete " + eid + "? (y/n): ");
+    if (confirm != "y" && confirm != "Y") {
+        cout << "  Deletion cancelled.\n"; waitKey(); return;
+    }
+
+    employees_[eid].setDeleted(true);
+    cout << "  Employee " << eid << " deleted successfully.\n";
+    saveData();
+    waitKey();
 }
 
 // ── Order management ──────────────────────────────────────────────────────────
@@ -245,24 +339,29 @@ void WarehouseSystem::employeeManagement() {
 void WarehouseSystem::orderManagement() {
     sectionTitle("Order Management");
     static const string opts[] = {
-        "  1. Create order", "  2. View all orders", "  3. Edit order"
+        "  1. Create order", "  2. View all orders",
+        "  3. Edit order",   "  4. Delete order"
     };
-    printMenu("Order Management", opts, 3);
+    printMenu("Order Management", opts, 4);
     bool ok;
-    int c = readValidatedInt("Enter choice (1-3): ", "Enter 1, 2, or 3.",
-                             [](int v, bool p){ return p && v >= 1 && v <= 3; }, ok);
+    int c = readValidatedInt("Enter choice (1-4): ", "Enter 1, 2, 3, or 4.",
+                             [](int v, bool p){ return p && v >= 1 && v <= 4; }, ok);
     if (!ok) { cerr << "  Too many invalid attempts. Returning to menu.\n"; waitKey(); return; }
 
     if      (c == 1) orderCreate();
     else if (c == 2) {
-        if (orders_.empty()) { cout << "  No orders.\n"; waitKey(); return; }
+        bool any = false;
         cout << "\n  " << left << setw(14) << "Order ID" << setw(14) << "Status"
              << "Assigned To\n  " << string(52, '-') << "\n";
-        for (const auto& o : orders_)
+        for (const auto& o : orders_) {
+            if (o.second.isDeleted()) continue;
+            any = true;
             cout << "  " << left << setw(14) << o.second.getOrderId()
                  << setw(14) << o.second.getStatus()
                  << (o.second.getAssignedEmployeeId().empty() ? "-" : o.second.getAssignedEmployeeId())
                  << "\n";
+        }
+        if (!any) cout << "  No orders.\n";
         waitKey();
     }
     else if (c == 3) {
@@ -270,8 +369,47 @@ void WarehouseSystem::orderManagement() {
             "Format: ORD followed by 3 digits (e.g. ORD001).",
             [this](const string& v){ return validateId(v, "Order ID"); });
         if (oid.empty()) { cerr << "  Too many invalid attempts. Returning to menu.\n"; waitKey(); return; }
+        if (!orders_.count(oid) || orders_[oid].isDeleted()) {
+            cerr << "  Order not found.\n"; waitKey(); return;
+        }
         orderEdit(oid);
     }
+    else if (c == 4) deleteOrder();
+}
+
+// ── Delete order ──────────────────────────────────────────────────────────────
+
+void WarehouseSystem::deleteOrder() {
+    sectionTitle("Delete Order");
+    string oid = readValidatedLine("Order ID to delete: ",
+        "Format: ORD followed by 3 digits (e.g. ORD001).",
+        [this](const string& v){ return validateId(v, "Order ID"); });
+    if (oid.empty()) { cerr << "  Too many invalid attempts. Returning to menu.\n"; waitKey(); return; }
+    if (!orders_.count(oid) || orders_[oid].isDeleted()) {
+        cerr << "  Order not found.\n"; waitKey(); return;
+    }
+
+    const Order& ord = orders_[oid];
+
+    // Only Pending orders can be deleted
+    if (ord.getStatus() == "Completed") {
+        cerr << "  Cannot delete a completed order — history must be preserved.\n";
+        waitKey(); return;
+    }
+    if (ord.getStatus() == "InProgress") {
+        cerr << "  Cannot delete an order that is in progress.\n";
+        waitKey(); return;
+    }
+
+    string confirm = readLine("Are you sure you want to delete " + oid + "? (y/n): ");
+    if (confirm != "y" && confirm != "Y") {
+        cout << "  Deletion cancelled.\n"; waitKey(); return;
+    }
+
+    orders_[oid].setDeleted(true);
+    cout << "  Order " << oid << " deleted successfully.\n";
+    saveData();
+    waitKey();
 }
 
 void WarehouseSystem::orderCreate() {
@@ -280,15 +418,17 @@ void WarehouseSystem::orderCreate() {
         "Format: ORD followed by 3 digits (e.g. ORD001).",
         [this](const string& v){ return validateId(v, "Order ID"); });
     if (oid.empty()) { cerr << "  Too many invalid attempts. Returning to menu.\n"; waitKey(); return; }
-    if (orders_.count(oid)) { cerr << "  An order with this ID already exists.\n"; waitKey(); return; }
+    if (orders_.count(oid) && !orders_[oid].isDeleted()) {
+        cerr << "  An order with this ID already exists.\n"; waitKey(); return;
+    }
 
     Order ord(oid, "Pending", "");
     cout << "  Add items (leave Product ID empty when done).\n";
     while (true) {
         string pid = readLine("  Product ID (empty = done): ");
         if (pid.empty()) break;
-        if (!validateId(pid, "Product ID"))  { continue; }
-        if (!products_.count(pid))           { cerr << "  Product not found.\n"; continue; }
+        if (!validateId(pid, "Product ID"))                          { continue; }
+        if (!products_.count(pid) || products_[pid].isDeleted())     { cerr << "  Product not found.\n"; continue; }
         bool ok;
         int q = readValidatedInt("  Quantity: ", "Enter a whole number > 0.",
                                  [this](int v, bool p){ return validateQuantity(v, p) && v > 0; }, ok);
@@ -306,9 +446,9 @@ void WarehouseSystem::orderCreate() {
 
 void WarehouseSystem::orderEdit(const string& oid) {
     sectionTitle("Edit Order");
-    if (!orders_.count(oid))             { cerr << "  Order not found.\n"; waitKey(); return; }
+    if (!orders_.count(oid) || orders_[oid].isDeleted()) { cerr << "  Order not found.\n"; waitKey(); return; }
     Order& ord = orders_[oid];
-    if (ord.getStatus() == "Completed")  { cerr << "  Cannot edit a completed order.\n"; waitKey(); return; }
+    if (ord.getStatus() == "Completed") { cerr << "  Cannot edit a completed order.\n"; waitKey(); return; }
 
     Order backup = ord;
     ord.clearItems();
@@ -316,8 +456,8 @@ void WarehouseSystem::orderEdit(const string& oid) {
     while (true) {
         string pid = readLine("  Product ID (empty = done): ");
         if (pid.empty()) break;
-        if (!validateId(pid, "Product ID"))  { continue; }
-        if (!products_.count(pid))           { cerr << "  Product not found.\n"; continue; }
+        if (!validateId(pid, "Product ID"))                          { continue; }
+        if (!products_.count(pid) || products_[pid].isDeleted())     { cerr << "  Product not found.\n"; continue; }
         bool ok;
         int q = readValidatedInt("  Quantity: ", "Enter a whole number > 0.",
                                  [this](int v, bool p){ return validateQuantity(v, p) && v > 0; }, ok);
@@ -342,14 +482,14 @@ void WarehouseSystem::assignOrder() {
         "Format: ORD followed by 3 digits (e.g. ORD001).",
         [this](const string& v){ return validateId(v, "Order ID"); });
     if (oid.empty()) { cerr << "  Too many invalid attempts. Returning to menu.\n"; waitKey(); return; }
-    if (!orders_.count(oid)) { cerr << "  Order not found.\n"; waitKey(); return; }
+    if (!orders_.count(oid) || orders_[oid].isDeleted()) { cerr << "  Order not found.\n"; waitKey(); return; }
     if (orders_[oid].getStatus() == "Completed") { cerr << "  Cannot reassign a completed order.\n"; waitKey(); return; }
 
     string eid = readValidatedLine("Employee ID: ",
         "Format: E followed by 3 digits (e.g. E001).",
         [this](const string& v){ return validateId(v, "Employee ID"); });
     if (eid.empty()) { cerr << "  Too many invalid attempts. Returning to menu.\n"; waitKey(); return; }
-    if (!employees_.count(eid)) { cerr << "  Employee not found.\n"; waitKey(); return; }
+    if (!employees_.count(eid) || employees_[eid].isDeleted()) { cerr << "  Employee not found.\n"; waitKey(); return; }
 
     orders_[oid].setAssignedEmployeeId(eid);
     orders_[oid].setStatus("InProgress");
@@ -365,7 +505,7 @@ void WarehouseSystem::viewAssignedOrders() {
     const string eid = currentUser_->getEmployeeId();
     list<pair<string,string>> rows;
     for (const auto& o : orders_)
-        if (o.second.getAssignedEmployeeId() == eid)
+        if (!o.second.isDeleted() && o.second.getAssignedEmployeeId() == eid)
             rows.push_back({o.second.getOrderId(), o.second.getStatus()});
     if (rows.empty()) { cout << "  You have no assigned orders.\n"; waitKey(); return; }
     cout << "\n  " << left << setw(16) << "Order ID" << "Status\n  " << string(36, '-') << "\n";
@@ -380,7 +520,7 @@ void WarehouseSystem::completeOrder() {
         "Format: ORD followed by 3 digits (e.g. ORD001).",
         [this](const string& v){ return validateId(v, "Order ID"); });
     if (oid.empty()) { cerr << "  Too many invalid attempts. Returning to menu.\n"; waitKey(); return; }
-    if (!orders_.count(oid)) { cerr << "  Order not found.\n"; waitKey(); return; }
+    if (!orders_.count(oid) || orders_[oid].isDeleted()) { cerr << "  Order not found.\n"; waitKey(); return; }
     Order& ord = orders_[oid];
     if (ord.getAssignedEmployeeId() != currentUser_->getEmployeeId()) {
         cerr << "  This order is not assigned to you.\n"; waitKey(); return;

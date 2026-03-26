@@ -18,10 +18,10 @@
 Manager Menu is displayed with options 1-6.
 
 ## Actual Result
-<!-- Fill in when tested -->
+Login succeeds and Manager Menu is displayed.
 
 ## Status
-<!-- PASS or FAIL -->
+PASS
 
 ## Evidence
 See /evidence/TC01_pass.png

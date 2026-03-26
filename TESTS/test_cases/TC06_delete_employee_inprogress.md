@@ -18,10 +18,10 @@ Deletion is blocked and the relevant order ID is displayed
 in an error message.
 
 ## Actual Result
-<!-- Fill in when tested -->
+Deletion is blocked when the employee has an assigned order with status InProgress, and the order ID is shown.
 
 ## Status
-<!-- PASS or FAIL -->
+PASS
 
 ## Evidence
 See /evidence/TC06_pass.png
