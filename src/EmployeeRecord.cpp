@@ -1,4 +1,4 @@
-#include "../include/EmployeeRecord.h"
+#include "EmployeeRecord.h"
 
 using namespace std;
 

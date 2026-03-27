@@ -1,4 +1,4 @@
-#include "../include/User.h"
+#include "User.h"
 using namespace std;
 User::User(){}
 User::User(const string& username, const string& passwordHash)

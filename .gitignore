@@ -1,0 +1,13 @@
+# Build outputs (do not use a generic "build/" rule — on Windows it ignores BUILD/)
+cmake-build-debug/
+cmake-build-release/
+out/
+
+# IDE
+.idea/
+
+# Office lock files
+~$*.docx
+
+# Optional local test output
+TESTS/test_output/

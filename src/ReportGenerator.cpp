@@ -1,6 +1,6 @@
-#include"../include/ReportGenerator.h"
-#include"../include/Product.h"
-#include"../include/Order.h"
+#include "ReportGenerator.h"
+#include "Product.h"
+#include "Order.h"
 #include <fstream>
 #include <algorithm>
 #include <stdexcept>

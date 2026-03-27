@@ -1,5 +1,5 @@
-#include "../include/AuthManager.h"
-#include "../include/User.h"
+#include "AuthManager.h"
+#include "User.h"
 #include <iostream>
 #include <algorithm>
 #include <numeric>

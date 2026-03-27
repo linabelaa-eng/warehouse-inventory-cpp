@@ -1,4 +1,4 @@
-#include "../include/WarehouseSystem.h"
+#include "WarehouseSystem.h"
 #include <iostream>
 #include <exception>
 using namespace std;

@@ -1,0 +1,87 @@
+' Warehouse Inventory System — PlantUML for report figures
+' Render at https://www.plantuml.com/plantuml/uml/ or your IDE PlantUML plugin
+' Export PNG/SVG for Word.
+
+@startuml Warehouse_Login_Flow_WhiteBox
+title White-box flow: AuthManager login and lockout (simplified)
+
+start
+:login(username, password);
+if (users_ is null?) then (yes)
+  :return nullptr;
+  stop
+endif
+if (username in map?) then (no)
+  :incrementFailedAttempts();
+  if (failedAttempts >= 3?) then (yes)
+    :exit(1);
+    stop
+  endif
+  :return nullptr;
+  stop
+endif
+if (user pointer null?) then (yes)
+  :incrementFailedAttempts();
+  if (failedAttempts >= 3?) then (yes)
+    :exit(1);
+    stop
+  endif
+  :return nullptr;
+  stop
+endif
+:hash = hashPassword(password);
+if (hash == stored hash?) then (no)
+  :incrementFailedAttempts();
+  if (failedAttempts >= 3?) then (yes)
+    :exit(1);
+    stop
+  endif
+  :return nullptr;
+  stop
+endif
+:resetFailedAttempts();
+:return User*;
+stop
+@enduml
+
+@startuml Warehouse_CreateOrder_Sequence
+title Sequence: Manager create order (simplified)
+
+actor Manager
+participant "WarehouseSystem" as WS
+participant "AuthManager" as AM
+participant "FileHandler" as FH
+
+Manager -> WS : login(username, password)
+WS -> AM : login(username, password)
+AM --> WS : User* (Manager)
+
+Manager -> WS : orderCreate()
+loop For each line item
+  WS -> WS : validateId / lookup products_
+end
+WS -> WS : canFulfillOrder(order)
+alt insufficient stock
+  WS --> Manager : error message
+else ok
+  WS -> WS : orders_[id] = order
+  WS -> FH : saveData (orders + order_items)
+  FH --> WS : ok
+  WS --> Manager : Order created successfully
+end
+@enduml
+
+@startuml Warehouse_CompleteOrder_Sequence
+title Sequence: Employee complete order (simplified)
+
+actor Employee
+participant "WarehouseSystem" as WS
+
+Employee -> WS : completeOrder(orderId)
+WS -> WS : order assigned to this employee?
+WS -> WS : canFulfillOrder(order)
+WS -> WS : deductStock(order)
+WS -> WS : setStatus(Completed)
+WS -> WS : saveData()
+WS --> Employee : Order completed successfully
+@enduml

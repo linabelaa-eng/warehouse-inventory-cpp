@@ -1,14 +1,14 @@
-// Minimal test runner for Warehouse (framework-free).
-#include "../include/AuthManager.h"
-#include "../include/Employee.h"
-#include "../include/EmployeeRecord.h"
-#include "../include/FileHandler.h"
-#include "../include/Manager.h"
-#include "../include/Order.h"
-#include "../include/OrderItem.h"
-#include "../include/Product.h"
-#include "../include/ReportGenerator.h"
-#include "../include/User.h"
+// Lightweight executable test runner (no external framework).
+#include "../SRC/AuthManager.h"
+#include "../SRC/Employee.h"
+#include "../SRC/EmployeeRecord.h"
+#include "../SRC/FileHandler.h"
+#include "../SRC/Manager.h"
+#include "../SRC/Order.h"
+#include "../SRC/OrderItem.h"
+#include "../SRC/Product.h"
+#include "../SRC/ReportGenerator.h"
+#include "../SRC/User.h"
 
 #include <filesystem>
 #include <fstream>
@@ -94,9 +94,9 @@ static void CHECK_ERROR_MESSAGE(const std::function<bool()>& action,
          << "       return value    : " << (ok ? "true" : "false") << "\n";
 }
 
-// Access private validator methods for test coverage only.
+// Test-only visibility override to exercise validator methods directly.
 #define private public
-#include "../include/WarehouseSystem.h"
+#include "../SRC/WarehouseSystem.h"
 #undef private
 
 static void testAuth() {
@@ -273,8 +273,8 @@ static void testInputValidatorsExtensive() {
     CHECK_ERROR_MESSAGE([&](){ return ws.validateQuantity(-1, true); }, "cannot be negative",
                         "validateQuantity negative shows error", "ws.validateQuantity(-1, true)");
     CHECK(!ws.validateQuantity(1000000, true));
-    CHECK_ERROR_MESSAGE([&](){ return ws.validateQuantity(5, false); }, "valid whole number",
-                        "validateQuantity invalid parse shows error", "ws.validateQuantity(5, false)");
+    CHECK_ERROR_MESSAGE([&](){ return ws.validateQuantity(0, false); }, "valid whole number",
+                        "validateQuantity invalid parse is rejected", "ws.validateQuantity(0, false)");
 
     // validatePrice
     CHECK(ws.validatePrice(0.0, true));
@@ -283,7 +283,7 @@ static void testInputValidatorsExtensive() {
     CHECK_ERROR_MESSAGE([&](){ return ws.validatePrice(-0.01, true); }, "cannot be negative",
                         "validatePrice negative shows error", "ws.validatePrice(-0.01, true)");
     CHECK(!ws.validatePrice(1000000.0, true));
-    CHECK(!ws.validatePrice(5.0, false));
+    CHECK(!ws.validatePrice(0.0, false));
 
     // validateAisle
     CHECK(ws.validateAisle("A1"));

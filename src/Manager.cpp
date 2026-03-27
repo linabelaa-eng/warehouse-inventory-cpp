@@ -1,4 +1,4 @@
-#include "../include/Manager.h"
+#include "Manager.h"
 Manager::Manager(): User(){}
 Manager::Manager(const string& username, const string& passwordHash): User(username, passwordHash){}
 
