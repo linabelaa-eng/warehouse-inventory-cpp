@@ -1,0 +1,6 @@
+C:/Users/belaa/Downloads/Warehouse/cmake-build-debug/CMakeFiles/edit_cache.dir
+C:/Users/belaa/Downloads/Warehouse/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+C:/Users/belaa/Downloads/Warehouse/cmake-build-debug/BUILD/CMakeFiles/Warehouse.dir
+C:/Users/belaa/Downloads/Warehouse/cmake-build-debug/BUILD/CMakeFiles/WarehouseTests.dir
+C:/Users/belaa/Downloads/Warehouse/cmake-build-debug/BUILD/CMakeFiles/edit_cache.dir
+C:/Users/belaa/Downloads/Warehouse/cmake-build-debug/BUILD/CMakeFiles/rebuild_cache.dir
