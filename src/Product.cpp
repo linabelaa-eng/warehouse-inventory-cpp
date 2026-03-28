@@ -17,9 +17,7 @@ bool Product::isDeleted() const { return isDeleted_; }
 void Product::setDeleted(bool deleted) { isDeleted_ = deleted; }
 void Product::setName(const string& name){name_ = name; }
 void Product::setQuantity(int quantity){
-    if (quantity < 0) {
-        quantity_ = 0;
-        } else {quantity_ = quantity;}
+    if (quantity < 0) {quantity_ = 0;} else {quantity_ = quantity;}
 }
 void Product::setAisle(const string& aisle){aisle_ = aisle;}
 void Product::setShelf(const string& shelf){shelf_ = shelf;}

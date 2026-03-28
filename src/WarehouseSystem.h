@@ -16,22 +16,7 @@ class AuthManager;
 class ReportGenerator;
 
 class WarehouseSystem {
-public:
-    WarehouseSystem();
-    ~WarehouseSystem();
-    void run();
-    void loadData();
-    void saveData();
-    bool validateId(const string& id, const string& label);
-    bool validateName(const string& name, const string& label);
-    bool validateQuantity(int qty, bool inputValid);
-    bool validatePrice(double price, bool inputValid);
-    bool validateAisle(const string& aisle);
-    bool validateShelf(const string& shelf);
-    bool validateUsername(const string& username);
-    bool validatePassword(const string& password);
-    bool validateFilePath(const string& path);
-private:
+    private:
     map<string, User*>          users_;
     map<string, Product>        products_;
     map<string, EmployeeRecord> employees_;
@@ -40,7 +25,7 @@ private:
     ReportGenerator*            reportGenerator_;
     User*                       currentUser_;
 
-    // ── menus ────────────────────────────────────────────────────────────────
+    // Manager employee menus and feature screens
     void showManagerMenu();
     void showEmployeeMenu();
     void productManagement();
@@ -58,12 +43,12 @@ private:
     void reportMenu();
     void generateMyReport();
 
-    // ── business logic ───────────────────────────────────────────────────────
+    // Search and order stock rules
     list<Product> findProductsByNameOrId(const string& query);
     bool          canFulfillOrder(const Order& order) const;
     void          deductStock(const Order& order);
 
-    // ── input helpers ────────────────────────────────────────────────────────
+    // Console input
     string readLine(const string& prompt);
     int    readInt(const string& prompt, bool& inputValid);
     double readDouble(const string& prompt, bool& inputValid);
@@ -72,28 +57,38 @@ private:
     void   printMenu(const string& title, const string items[], int n);
     void   runLoginAndMenuLoop();
 
-    // retries up to maxTries times; returns "" if all attempts fail
+    // retries up to maxTries times
     string readValidatedLine(const string& prompt,
                              const string& hint,
                              function<bool(const string&)> validator,
                              int maxTries = 3);
 
-    // retries up to maxTries times for integers; sets ok=false if all fail
     int    readValidatedInt(const string& prompt,
                             const string& hint,
                             function<bool(int, bool)> validator,
                             bool& ok,
                             int maxTries = 3);
 
-    // retries up to maxTries times for doubles; sets ok=false if all fail
     double readValidatedDouble(const string& prompt,
                                const string& hint,
                                function<bool(double, bool)> validator,
                                bool& ok,
                                int maxTries = 3);
-
-    // ── validators ───────────────────────────────────────────────────────────
-
+public:
+    WarehouseSystem();
+    ~WarehouseSystem();
+    void run();
+    void loadData();
+    void saveData();
+    bool validateId(const string& id, const string& label);
+    bool validateName(const string& name, const string& label);
+    bool validateQuantity(int qty, bool inputValid);
+    bool validatePrice(double price, bool inputValid);
+    bool validateAisle(const string& aisle);
+    bool validateShelf(const string& shelf);
+    bool validateUsername(const string& username);
+    bool validatePassword(const string& password);
+    bool validateFilePath(const string& path);
 };
 
 #endif

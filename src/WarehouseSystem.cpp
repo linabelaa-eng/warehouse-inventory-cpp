@@ -3,12 +3,12 @@
 #include "User.h"
 #include "Manager.h"
 #include "Employee.h"
-#include "FileHandler.h"
 #include "Product.h"
 #include "EmployeeRecord.h"
 #include "Order.h"
 #include "OrderItem.h"
 #include "ReportGenerator.h"
+#include "FileHandler.h"
 #include <iostream>
 #include <algorithm>
 #include <cctype>
@@ -16,7 +16,6 @@
 #include <iomanip>
 #include <functional>
 using namespace std;
-
 static const string DATA_DIR = "Testing";
 
 static string toLower(string s) {
@@ -55,7 +54,7 @@ WarehouseSystem::~WarehouseSystem() {
 void WarehouseSystem::loadData() {
     FileHandler fh(DATA_DIR);
     if (fh.loadUsers(users_) && !users_.empty()) {
-        // Ensure admin exists and admin/admin always works
+        // Guarantee demo manager account and consistent password hash for "admin".
         auto it = users_.find("admin");
         if (it == users_.end()) {
             users_["admin"] = new Manager("admin", authManager_->hashPassword("admin"));
@@ -75,6 +74,7 @@ void WarehouseSystem::loadData() {
         return;
     }
 
+    // No CSV yet: seed demo users, catalog, employees, orders, then save.
     users_.clear(); products_.clear(); employees_.clear(); orders_.clear();
 
     users_["admin"] = new Manager("admin", authManager_->hashPassword("admin"));
@@ -138,13 +138,12 @@ void WarehouseSystem::loadData() {
 
 void WarehouseSystem::saveData() {
     FileHandler fh(DATA_DIR);
+    // Persist full state after changes (users, products, employees, orders + line items).
     fh.saveUsers(users_);
     fh.saveProducts(products_);
     fh.saveEmployees(employees_);
     fh.saveOrders(orders_);
 }
-
-// ── raw input ─────────────────────────────────────────────────────────────────
 
 string WarehouseSystem::readLine(const string& prompt) {
     cout << "  " << prompt << "> ";
@@ -181,8 +180,6 @@ double WarehouseSystem::readDouble(const string& prompt, bool& inputValid) {
     } catch (...) {}
     return 0.0;
 }
-
-// ── validated input helpers ───────────────────────────────────────────────────
 
 string WarehouseSystem::readValidatedLine(const string& prompt,
                                           const string& hint,
@@ -242,8 +239,6 @@ double WarehouseSystem::readValidatedDouble(const string& prompt,
     return 0.0;
 }
 
-// ── UI helpers ────────────────────────────────────────────────────────────────
-
 void WarehouseSystem::waitKey() {
     cout << "  [Press Enter to continue]";
     cout.flush();
@@ -285,7 +280,6 @@ void WarehouseSystem::run() {
 }
 
 void WarehouseSystem::runLoginAndMenuLoop() {
-    // Login screen
     cout << "\n";
     cout << "  +" << string(46, '=') << "+\n";
     cout << "  |" << string(46, ' ') << "|\n";
@@ -311,7 +305,6 @@ void WarehouseSystem::runLoginAndMenuLoop() {
         return;
     }
 
-    // Welcome message
     string welcomeText = currentUser_->getUsername() + " (" + currentUser_->getRole() + ")";
     if (welcomeText.size() > 33) welcomeText = welcomeText.substr(0, 30) + "...";
     cout << "  +" << string(46, '-') << "+\n";
@@ -330,6 +323,7 @@ void WarehouseSystem::runLoginAndMenuLoop() {
     cout << "  +" << string(46, '-') << "+\n\n";
 }
 
+// Case-insensitive substring match on product id or name.
 list<Product> WarehouseSystem::findProductsByNameOrId(const string& query) {
     list<Product> result;
     const string q = toLower(query);
@@ -342,6 +336,7 @@ list<Product> WarehouseSystem::findProductsByNameOrId(const string& query) {
     return result;
 }
 
+// True if every line item has enough stock for its quantity.
 bool WarehouseSystem::canFulfillOrder(const Order& order) const {
     const list<OrderItem>& items = order.getItems();
     return all_of(items.begin(), items.end(), [this](const OrderItem& item) {
@@ -350,6 +345,7 @@ bool WarehouseSystem::canFulfillOrder(const Order& order) const {
     });
 }
 
+// Called after checks; reduces quantities for each line item.
 void WarehouseSystem::deductStock(const Order& order) {
     for_each(order.getItems().begin(), order.getItems().end(),
              [this](const OrderItem& item) {

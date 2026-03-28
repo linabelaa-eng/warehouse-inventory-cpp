@@ -3,16 +3,14 @@
 #include <algorithm>
 #include <cctype>
 using namespace std;
-
-// ── helpers ───────────────────────────────────────────────────────────────────
-
+// Characters that must not appear in CSV-safe text fields.
 static bool hasInvalidChars(const string& s) {
     for (char c : s)
         if (c == ',' || c == '\n' || c == '\r' || c == '"' || c == '\\')
             return true;
     return false;
 }
-
+// Restrict to letters digits plus optional punctuation
 static bool isAlphaNumericWithAllowed(const string& s, const string& allowed) {
     for (char c : s)
         if (!isalnum(static_cast<unsigned char>(c)) &&
@@ -20,26 +18,18 @@ static bool isAlphaNumericWithAllowed(const string& s, const string& allowed) {
             return false;
     return true;
 }
-
+// Fixed-width numeric suffix
 static bool isThreeDigits(const string& s, size_t offset) {
     if (s.size() != offset + 3) return false;
     for (size_t i = offset; i < s.size(); ++i)
         if (!isdigit(static_cast<unsigned char>(s[i]))) return false;
     return true;
 }
-
-// ── ID validators ─────────────────────────────────────────────────────────────
-//
-//  Product ID  : P   + 3 digits  ->  P001 .. P999
-//  Employee ID : E   + 3 digits  ->  E001 .. E999
-//  Order ID    : ORD + 3 digits  ->  ORD001 .. ORD999
-
 bool WarehouseSystem::validateId(const string& id, const string& label) {
     if (id.empty()) {
         cerr << "  " << label << " cannot be empty.\n";
         return false;
     }
-
     if (label == "Product ID") {
         if (id[0] == 'P' && isThreeDigits(id, 1))
             return true;
@@ -70,8 +60,6 @@ bool WarehouseSystem::validateId(const string& id, const string& label) {
     return false;
 }
 
-// ── other validators ──────────────────────────────────────────────────────────
-
 bool WarehouseSystem::validateName(const string& name, const string& label) {
     if (name.empty()) {
         cerr << "  " << label << " cannot be empty.\n";
@@ -89,6 +77,7 @@ bool WarehouseSystem::validateName(const string& name, const string& label) {
 }
 
 bool WarehouseSystem::validateQuantity(int qty, bool inputValid) {
+    // inputValid reflects whether readInt consumed the whole token
     if (!inputValid) {
         cerr << "  Please enter a valid whole number for quantity.\n";
         return false;
@@ -105,6 +94,7 @@ bool WarehouseSystem::validateQuantity(int qty, bool inputValid) {
 }
 
 bool WarehouseSystem::validatePrice(double price, bool inputValid) {
+    // Same contract as validateQuantity for readDouble parsing.
     if (!inputValid) {
         cerr << "  Please enter a valid number for price (e.g. 9.99).\n";
         return false;

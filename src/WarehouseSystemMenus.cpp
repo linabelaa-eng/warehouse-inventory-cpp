@@ -16,7 +16,7 @@
 #include <iomanip>
 using namespace std;
 
-// ── Manager menu ──────────────────────────────────────────────────────────────
+// Manager employee menus and CRUD flows for products, staff, orders, reports.
 
 void WarehouseSystem::showManagerMenu() {
     cout << "\n  --- Manager ---\n\n";
@@ -37,8 +37,6 @@ void WarehouseSystem::showManagerMenu() {
     else if (c == 6) currentUser_ = nullptr;
 }
 
-// ── Employee menu ─────────────────────────────────────────────────────────────
-
 void WarehouseSystem::showEmployeeMenu() {
     cout << "\n  --- Employee ---\n\n";
     static const string opts[] = {
@@ -56,8 +54,6 @@ void WarehouseSystem::showEmployeeMenu() {
     else if (c == 4) generateMyReport();
     else if (c == 5) currentUser_ = nullptr;
 }
-
-// ── Product management ────────────────────────────────────────────────────────
 
 void WarehouseSystem::productManagement() {
     sectionTitle("Product Management");
@@ -113,14 +109,15 @@ void WarehouseSystem::productManagement() {
     } else if (c == 2) {
         bool any = false;
         cout << "\n  " << left << setw(12) << "ID" << setw(20) << "Name"
-             << setw(8) << "Qty" << setw(10) << "Location" << "Price\n  "
-             << string(56, '-') << "\n";
+             << setw(8) << "Qty" << setw(12) << "Status" << setw(10) << "Location" << "Price\n  "
+             << string(70, '-') << "\n";
         for (const auto& p : products_) {
             if (p.second.isDeleted()) continue;
             any = true;
             cout << "  " << left << setw(12) << p.second.getId()
                  << setw(20) << p.second.getName()
                  << setw(8)  << p.second.getQuantity()
+                 << setw(12) << p.second.getStockStatus()
                  << setw(10) << (p.second.getAisle() + "/" + p.second.getShelf())
                  << fixed << setprecision(2) << p.second.getPrice() << "\n";
         }
@@ -173,8 +170,6 @@ void WarehouseSystem::productManagement() {
     }
 }
 
-// ── Delete product ────────────────────────────────────────────────────────────
-
 void WarehouseSystem::deleteProduct() {
     sectionTitle("Delete Product");
     string id = readValidatedLine("Product ID to delete: ",
@@ -185,7 +180,7 @@ void WarehouseSystem::deleteProduct() {
         cerr << "  Product not found.\n"; waitKey(); return;
     }
 
-    // Block deletion if product is referenced in any active order
+    // Refuse if the product appears on a non-completed order.
     for (const auto& o : orders_) {
         if (o.second.isDeleted() || o.second.getStatus() == "Completed") continue;
         for (const auto& item : o.second.getItems()) {
@@ -203,13 +198,11 @@ void WarehouseSystem::deleteProduct() {
         cout << "  Deletion cancelled.\n"; waitKey(); return;
     }
 
-    products_[id].setDeleted(true);
+    products_[id].setDeleted(true); // soft-delete
     cout << "  Product " << id << " deleted successfully.\n";
     saveData();
     waitKey();
 }
-
-// ── Employee management ───────────────────────────────────────────────────────
 
 void WarehouseSystem::employeeManagement() {
     sectionTitle("Employee Management");
@@ -299,8 +292,6 @@ void WarehouseSystem::employeeManagement() {
     }
 }
 
-// ── Delete employee ───────────────────────────────────────────────────────────
-
 void WarehouseSystem::deleteEmployee() {
     sectionTitle("Delete Employee");
     string eid = readValidatedLine("Employee ID to delete: ",
@@ -311,7 +302,7 @@ void WarehouseSystem::deleteEmployee() {
         cerr << "  Employee not found.\n"; waitKey(); return;
     }
 
-    // Block deletion if employee has any active InProgress orders
+    // Refuse if this employee has an InProgress order.
     for (const auto& o : orders_) {
         if (o.second.isDeleted()) continue;
         if (o.second.getAssignedEmployeeId() == eid &&
@@ -328,13 +319,11 @@ void WarehouseSystem::deleteEmployee() {
         cout << "  Deletion cancelled.\n"; waitKey(); return;
     }
 
-    employees_[eid].setDeleted(true);
+    employees_[eid].setDeleted(true); // soft-delete
     cout << "  Employee " << eid << " deleted successfully.\n";
     saveData();
     waitKey();
 }
-
-// ── Order management ──────────────────────────────────────────────────────────
 
 void WarehouseSystem::orderManagement() {
     sectionTitle("Order Management");
@@ -377,8 +366,6 @@ void WarehouseSystem::orderManagement() {
     else if (c == 4) deleteOrder();
 }
 
-// ── Delete order ──────────────────────────────────────────────────────────────
-
 void WarehouseSystem::deleteOrder() {
     sectionTitle("Delete Order");
     string oid = readValidatedLine("Order ID to delete: ",
@@ -406,7 +393,7 @@ void WarehouseSystem::deleteOrder() {
         cout << "  Deletion cancelled.\n"; waitKey(); return;
     }
 
-    orders_[oid].setDeleted(true);
+    orders_[oid].setDeleted(true); // soft-delete
     cout << "  Order " << oid << " deleted successfully.\n";
     saveData();
     waitKey();
@@ -498,8 +485,6 @@ void WarehouseSystem::assignOrder() {
     waitKey();
 }
 
-// ── Employee actions ──────────────────────────────────────────────────────────
-
 void WarehouseSystem::viewAssignedOrders() {
     sectionTitle("My Assigned Orders");
     const string eid = currentUser_->getEmployeeId();
@@ -544,18 +529,17 @@ void WarehouseSystem::searchProducts() {
     list<Product> results = findProductsByNameOrId(query);
     if (results.empty()) { cout << "  No products match your search.\n"; waitKey(); return; }
     cout << "\n  " << left << setw(12) << "ID" << setw(20) << "Name"
-         << setw(8) << "Qty" << setw(10) << "Location" << "Price\n  "
-         << string(56, '-') << "\n";
+         << setw(8) << "Qty" << setw(12) << "Status" << setw(10) << "Location" << "Price\n  "
+         << string(70, '-') << "\n";
     for (const auto& p : results)
         cout << "  " << left << setw(12) << p.getId()
              << setw(20) << p.getName()
              << setw(8)  << p.getQuantity()
+             << setw(12) << p.getStockStatus()
              << setw(10) << (p.getAisle() + "/" + p.getShelf())
              << fixed << setprecision(2) << p.getPrice() << "\n";
     waitKey();
 }
-
-// ── Reports ───────────────────────────────────────────────────────────────────
 
 void WarehouseSystem::reportMenu() {
     sectionTitle("Reports");

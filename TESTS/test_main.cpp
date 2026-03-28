@@ -1,4 +1,3 @@
-// Lightweight executable test runner (no external framework).
 #include "../SRC/AuthManager.h"
 #include "../SRC/Employee.h"
 #include "../SRC/EmployeeRecord.h"
@@ -94,7 +93,7 @@ static void CHECK_ERROR_MESSAGE(const std::function<bool()>& action,
          << "       return value    : " << (ok ? "true" : "false") << "\n";
 }
 
-// Test-only visibility override to exercise validator methods directly.
+// Test only visibility override to exercise validator methods directly.
 #define private public
 #include "../SRC/WarehouseSystem.h"
 #undef private

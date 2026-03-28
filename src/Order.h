@@ -14,7 +14,8 @@ private:
     bool isDeleted_;
     public:
     Order();
-    Order(const string& orderId, const string& status, const string& assignedEmployeeId= "");
+    Order(const string& orderId, const string& status,
+        const string& assignedEmployeeId= "");
     string getOrderId() const;
     string getStatus() const;
     string getAssignedEmployeeId() const;
