@@ -1,4 +1,0 @@
-"C:\Users\belaa\AppData\Local\Programs\CLion 2025.2.1\bin\cmake\win\x64\bin\cmake.exe" -DCMAKE_BUILD_TYPE=Debug "-DCMAKE_MAKE_PROGRAM=C:/Users/belaa/AppData/Local/Programs/CLion 2025.2.1/bin/ninja/win/x64/ninja.exe" -G Ninja -S C:\Users\belaa\Downloads\Warehouse -B C:\Users\belaa\Downloads\Warehouse\cmake-build-debug
--- Configuring done (0.3s)
--- Generating done (0.1s)
--- Build files have been written to: C:/Users/belaa/Downloads/Warehouse/cmake-build-debug

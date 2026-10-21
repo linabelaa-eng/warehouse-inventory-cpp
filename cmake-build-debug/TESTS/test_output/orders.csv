@@ -1,3 +1,0 @@
-orderId,status,assignedEmployeeId,isDeleted
-ORD100,Pending,,0
-ORD101,Completed,E001,0
